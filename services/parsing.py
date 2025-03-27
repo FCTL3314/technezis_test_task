@@ -3,7 +3,7 @@ from parsel import Selector
 from price_parser import Price
 
 
-async def parse_price(url: str, xpath: str) -> Price | None:
+async def parse_price_by_xpath(url: str, xpath: str) -> Price | None:
     try:
         response = requests.get(url, timeout=5)
         if not response.ok:

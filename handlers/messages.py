@@ -8,7 +8,9 @@ from db.core import SessionLocal
 from db.models import Source
 from loader import dp, bot
 from schemas import SourceSchema
-from services.parsing import parse_price
+from services.currency_symbol import CustomCurrencySymbols
+from services.parsing import parse_price_by_xpath
+from currency_converter import CurrencyConverter
 
 
 @dp.message(lambda message: message.document)
@@ -47,17 +49,27 @@ async def handle_document(message: types.Message):
             session.rollback()
             await message.answer("Ошибка при сохранении в базу данных.")
             return
+
     await message.answer("Файл загружен и сохранен! Начинаю парсинг...")
 
-    results = []
-    prices = []
-    for source in sources:
-        price = await parse_price(str(source.url), source.xpath)
-        prices.append(price)
-        results.append(f"{source.title}: {price.amount} {price.currency}")
+    message_result = []
+    converted_prices = []
+    c = CurrencyConverter()
 
-    avg_price = sum([price.amount for price in prices]) / len(prices)
+    for i, source in enumerate(sources):
+        price = await parse_price_by_xpath(str(source.url), source.xpath)
+        message_result.append(f"{i}. {source.title}: {price.amount} {price.currency}")
+
+        currency = CustomCurrencySymbols.get_currency(price.currency)
+        if currency == "USD":
+            converted_price = float(price.amount)
+        else:
+            converted_price = c.convert(float(price.amount), currency, "USD")
+
+        converted_prices.append(converted_price)
+
+    avg_price = sum(converted_prices) / len(converted_prices)
 
     await message.answer(
-        f'Результат парсинга:\n{"\n".join(results)}.\n\nСредняя цена: {avg_price}'
+        f'Результат парсинга:\n{"\n".join(message_result)}.\n\nСредняя цена: {round(avg_price, 2)} $'
     )

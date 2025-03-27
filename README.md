@@ -1,5 +1,6 @@
-# technezis_test_task
+# Technezis Test Task
 
-1. `alembic init alembic`
-2. `alembic revision --autogenerate -m "migration info"`
-3. `alembic upgrade head`
+
+# Локальная установка:
+1. Устанавливает зависимости: `pip install -r requirements.txt`
+2. Применяем миграции: `alembic upgrade head`
