@@ -34,11 +34,12 @@ async def handle_document(message: types.Message):
         )
         return
 
-
     with SessionLocal() as session:
         try:
             for source in sources:
-                db_source = Source(title=source.title, url=str(source.url), xpath=source.xpath)
+                db_source = Source(
+                    title=source.title, url=str(source.url), xpath=source.xpath
+                )
                 session.add(db_source)
             session.commit()
         except Exception as e:
@@ -49,8 +50,14 @@ async def handle_document(message: types.Message):
     await message.answer("Файл загружен и сохранен! Начинаю парсинг...")
 
     results = []
+    prices = []
     for source in sources:
         price = await parse_price(str(source.url), source.xpath)
-        results.append(f"{source.title}: {price}")
+        prices.append(price)
+        results.append(f"{source.title}: {price.amount} {price.currency}")
 
-    await message.answer(f'Результат парсинга:\n{"\n".join(results)}')
+    avg_price = sum([price.amount for price in prices]) / len(prices)
+
+    await message.answer(
+        f'Результат парсинга:\n{"\n".join(results)}.\n\nСредняя цена: {avg_price}'
+    )
