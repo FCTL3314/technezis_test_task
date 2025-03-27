@@ -7,3 +7,5 @@
 2. Устанавливаем зависимости: `pip install -r requirements.txt`
 3. Применяем миграции: `alembic upgrade head`
 4. Запустить polling: `python main.py`
+
+> В структуре проекта есть файл `data_to_test.xlsx`, его можно использовать для тестирования бота.
